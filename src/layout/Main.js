@@ -5,17 +5,25 @@ import Navbar from "../components/Navbar";
 import { publicRequest } from "../request-method";
 import DatePicker from "../components/DatePicker";
 import DropdownForexType from "../components/DropdownForexType";
+import DatePickerMain from "../components/DatePickerMain";
 
-const Home = () => {
+
+const Main = () => {
 
     const default_data = {
         labels: [],
-        datasets: [
+        datasets: [         //Default dataset
           {
-            label: "Predicted Price",
+            label: "Predicted Price", 
             data: [],
             fill: false,
             borderColor: "rgba(75,192,192,1)"
+          },
+          {
+            label: "Actual Price",
+            data: [],
+            fill: false,
+            borderColor: "r#742774"
           }],
           
       };
@@ -55,6 +63,7 @@ const Home = () => {
 
       const [predicted,SetPredicted] = useState(default_data);
       const [startdate,setStartDate] =useState("")
+      const [enddate,setEndDate] =useState("")
       const [currency,setCurrency] = useState("EURUSD=X")
       const [forex_type,setForexType] = useState("Close")
 
@@ -62,7 +71,13 @@ const Home = () => {
       const getdatadatepicker = (e)=> {
         const date_id = e.target.id;
         const new_date =e.target.value
-        setStartDate(new_date)
+        if (date_id == 'start_date') 
+        {
+            setStartDate(new_date)
+        }
+        else{
+            setEndDate(new_date)
+        }
         }
 
 
@@ -79,9 +94,10 @@ const Home = () => {
     const getprediction = async () => {
         try 
       {
-        const response = await publicRequest.post('/forecastprediction',{'currency':currency,'forex_type':forex_type});
+        const response = await publicRequest.post('/mainprediction',{'currency':currency,'start_date':startdate,'end_date':enddate,'forex_type':forex_type});
         //console.log(response.data.predicted_price)
         const new_data_predicted =JSON.parse(response.data.predicted)
+        const new_data_actual =JSON.parse(response.data.actual)
         const new_label=JSON.parse(response.data.date_label.replace(/'/g, '"'))
         SetPredicted((prevState) => ({
             ...prevState,
@@ -89,8 +105,13 @@ const Home = () => {
             datasets: [
                 {
                   ...prevState.datasets[0],
-                  data:new_data_predicted, // New random data for first dataset
+                  data:new_data_predicted, // Result predicted
                 },
+                {
+                    ...prevState.datasets[1], // Result actual
+                    data:new_data_actual,
+
+                }
             ]
 
           }));
@@ -114,9 +135,12 @@ const Home = () => {
             <div class="p-4 ..."> 
             <Dropdown data ={getcurrency}/>
             </div>
-            {/*<div>
-            <DatePicker data ={getdatadatepicker} id ={"start_date"}/>
-            </div>*/}
+            <div>
+            <DatePickerMain data ={getdatadatepicker} id ={"start_date"}/>
+            </div>
+            <div>
+            <DatePickerMain data ={getdatadatepicker} id ={"end_date"}/>
+            </div>
             <div class="p-4 ..."> 
             <DropdownForexType data ={getforextype}/>
             </div>
@@ -132,4 +156,4 @@ const Home = () => {
     );
 };
 
-export default Home;
+export default Main;
